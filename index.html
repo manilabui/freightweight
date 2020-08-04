@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>FreightWise Programming Test</title>
+
+    <script>
+        'use strict';
+
+        class Test {
+            constructor() {
+                this.testResults = document.getElementsByClassName('test-results');
+            }
+
+            async run() {
+                console.log(new Date().toISOString(), '[Test]', 'Running the test');
+
+                const currBrentwooodWeather = await axios.get('//api.openweathermap.org/data/2.5/weather?q=Brentwood,TN,US&appid=25e989bd41e3e24ce13173d8126e0fd6');
+
+                this.setResults(currBrentWoodWeather);
+            }
+
+            setError(message) {
+                // TODO: Format the error
+                this.testResults.innerHTML = (message || '').toString();
+            }
+
+            setResults(results) {
+                results = results.weather.main
+
+                this.testResults.innerHTML = (results || '').toString();
+            }
+        }
+    </script>
+
+    <style>
+        .button-container {
+            text-align: center;
+        }
+
+        .button-container > button {
+            margin: 0;
+            padding: 10px 18px;
+            color: white;
+            background-color: #008000;
+            border: none;
+            border-radius: 3px;
+            transition: all 200ms ease-in-out;
+            font-size: 14px;
+        }
+
+        .button-container > button:hover {
+            background-color: #00A000;
+        }
+
+        .button-container > button:active {
+            background-color: #006000;
+        }
+    </style>
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div class="test-results"></div>
+
+    <div class="button-container"></div>
+
+    <script>
+        'use strict';
+
+        /**
+         * Creates a button for kicking off the test and adds it to the DOM.
+         *
+         * @param {HTMLElement} context  the parent element to add the button to
+         * @param {Test}        test     the test to be executed
+         * @returns {HTMLElement} the button added to the test
+         */
+        function addButtonForTest(context, test) {
+            let testButton = document.createElement('button');
+
+            testButton.type = 'button';
+            testButton.innerText = 'Get the Nashville Weather';
+            testButton.onclick = () => test.run();
+
+            context.appendChild(testButton);
+
+            return testButton;
+        }
+
+        // Create the Test and add a button to the UI for running the test
+        const test = new Test();
+        const buttonContainer = document.getElementsByClassName('button-container')[0];
+
+        addButtonForTest(buttonContainer, test);
+    </script>
+</body>
+</html>
