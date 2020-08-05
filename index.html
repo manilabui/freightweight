@@ -8,83 +8,55 @@
 
     <script>
         'use strict';
+        /**
+         * Was initially going to use the NewsAPI as well. However, this produces a 426 status error
+         * because the API requires payment when not using a local server.
+         */
 
         /**
-         * Fetches current Brentwood, TN weather from openweathermap API
-         * & Top Headlines from NewsAPI.org.
-         * Creates DOM elements to display the results
-         * & manipulates the DOM to display them or an error message in the test-results div.
+         * Fetches current Brentwood, TN weather from openweathermap API +
+         * manipulates the DOM to display the results or an error message.
          */
         class Test {
             constructor() {
                 // getElementsByClassName brings back an array of elements, 
                 // so the index needs to be specified.
-                this.weatherResults = document.getElementsByClassName('weather')[0];
-                this.newsResults = document.getElementsByClassName('news')[0];
+                this.testResults = document.getElementsByClassName('test-results')[0];
             }
 
-            async getWeather() {
+            async run() {
                 console.log(new Date().toISOString(), '[Test]', 'Running the weather test');
 
                 try {
-                    // The units default to Kelvin, so they must be specified in the query.
+                    // The units default to Kelvin, 
+                    // so they must be specified in the query if metric or imperial units are preferred.
                     const currBrentwoodWeather = await axios.get('//api.openweathermap.org/data/2.5/weather?q=Brentwood,TN,US&units=imperial&appid=25e989bd41e3e24ce13173d8126e0fd6');
 
-                    this.setWeatherResults(currBrentwoodWeather.data);
+                    this.setResults(currBrentwoodWeather.data);
                 } catch(e) {
-                    console.log('weather', e);
-                    this.setError('weather');
+                    this.setError(e);
                 }
             }
 
-            async getNews() {
-                console.log(new Date().toISOString(), '[Test]', 'Running the news test');
+            setError(e) {
+                // The error is console logged for dev purposes, and the message is more user-friendly.
+                console.log('weather', e);
+                const message = `Oops! Looks like we had some trouble getting the weather.`
 
-                try {
-                    // Limit number of results shown.
-                    const currTopUSHeadlines = await axios.get('//newsapi.org/v2/top-headlines?country=us&pageSize=3&apiKey=43089a5a73664515a179fd70503be21d');
-
-                    this.setResults(currTopUSHeadlines.data);
-                } catch(e) {
-                    console.log('news', e);
-                    this.setError('news');
-                }
-            }
-            /**
-             * Handle errors for weather + news api calls.
-             * Error message appears in the relevant div.
-             * 
-             */
-            setError(type) {
-                // The error is console logged for dev purposes, and the message is user friendly
-                const message = `Oops! Looks like we had some trouble getting the ${type}.`
-
-                type === 'weather' 
-                    ? this.weatherResults.innerHTML = message 
-                    : this.newsResults.innerHTML = message;
+                this.testResults.innerHTML = message;
             }
 
-            setWeatherResults(results) {
+            setResults(results) {
                 const description = results.weather[0].description;
-                // Round to 1 decimal place to make it more user-friendly
+                // Round to 1 decimal place to make it more user-friendly.
                 const temperature = results.main.temp.toFixed(1);
-                
-                this.weatherResults.innerHTML = this.createWeatherResults(description, temperature);
-            }
 
-            setNewsResults(results) {
-                console.log(results)
-            }
-
-            createWeatherResults(description, temperature) {
-                return `
+                const weatherHTML = `
                     <h1>It is ${temperature}°F in Brentwood with ${description}.</h1>
-                `
+                `;
+
+                this.testResults.innerHTML = weatherHTML;
             }
-
-            // createNewsCard() {
-
-            // }
         }
     </script>
 
@@ -124,17 +96,13 @@
             font-size: 14px;
         }
     </style>
-    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
 
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 </head>
 <body>
     <div class="button-container"></div>
-
-    <div class="test-results">
-        <section class="weather"></section>
-        <section class="news"></section>
-    </div>
+    {# moved results below the button, so that the button stays in place when the results appear #}
+    <div class="test-results"></div>
 
     <script>
         'use strict';
@@ -150,8 +118,8 @@
             let testButton = document.createElement('button');
 
             testButton.type = 'button';
-            testButton.innerText = `What's going on today?`;
-            testButton.onclick = () => test.getWeather() && test.getNews();
+            testButton.innerText = `How is the weather?`;
+            testButton.onclick = () => test.run();
 
             context.appendChild(testButton);
 
