@@ -11,24 +11,31 @@
 
         class Test {
             constructor() {
-                this.testResults = document.getElementsByClassName('test-results');
+                /**
+                * Since getElementsByClassName brings back an array of elements, 
+                * the index needs to be specified.
+                */
+                this.testResults = document.getElementsByClassName('test-results')[0];
             }
 
             async run() {
                 console.log(new Date().toISOString(), '[Test]', 'Running the test');
 
-                const currBrentwooodWeather = await axios.get('//api.openweathermap.org/data/2.5/weather?q=Brentwood,TN,US&appid=25e989bd41e3e24ce13173d8126e0fd6');
+                try {
+                    const currBrentwooodWeather = await axios.get('//api.openweathermap.org/data/2.5/weather?q=Brentwood,TN,US&appid=25e989bd41e3e24ce13173d8126e0fd6');
 
-                this.setResults(currBrentWoodWeather);
+                    this.setResults(currBrentwoodWeather);
+                } catch (e) {
+                    this.setError(e);
+                }
             }
 
             setError(message) {
-                // TODO: Format the error
                 this.testResults.innerHTML = (message || '').toString();
             }
 
             setResults(results) {
-                results = results.weather.main
+                results = results.weather.main;
 
                 this.testResults.innerHTML = (results || '').toString();
             }
@@ -57,6 +64,11 @@
 
         .button-container > button:active {
             background-color: #006000;
+        }
+
+        .test-results {
+            text-align: center;
+            padding: 10px;
         }
     </style>
 
