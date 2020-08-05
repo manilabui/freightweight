@@ -9,75 +9,132 @@
     <script>
         'use strict';
 
+        /**
+         * Fetches current Brentwood, TN weather from openweathermap API
+         * & Top Headlines from NewsAPI.org.
+         * Creates DOM elements to display the results
+         * & manipulates the DOM to display them or an error message in the test-results div.
+         */
         class Test {
             constructor() {
-                /**
-                * Since getElementsByClassName brings back an array of elements, 
-                * the index needs to be specified.
-                */
-                this.testResults = document.getElementsByClassName('test-results')[0];
+                // getElementsByClassName brings back an array of elements, 
+                // so the index needs to be specified.
+                this.weatherResults = document.getElementsByClassName('weather')[0];
+                this.newsResults = document.getElementsByClassName('news')[0];
             }
 
-            async run() {
-                console.log(new Date().toISOString(), '[Test]', 'Running the test');
+            async getWeather() {
+                console.log(new Date().toISOString(), '[Test]', 'Running the weather test');
 
                 try {
-                    const currBrentwooodWeather = await axios.get('//api.openweathermap.org/data/2.5/weather?q=Brentwood,TN,US&appid=25e989bd41e3e24ce13173d8126e0fd6');
+                    // The units default to Kelvin, so they must be specified in the query.
+                    const currBrentwoodWeather = await axios.get('//api.openweathermap.org/data/2.5/weather?q=Brentwood,TN,US&units=imperial&appid=25e989bd41e3e24ce13173d8126e0fd6');
 
-                    this.setResults(currBrentwoodWeather);
-                } catch (e) {
-                    this.setError(e);
+                    this.setWeatherResults(currBrentwoodWeather.data);
+                } catch(e) {
+                    console.log('weather', e);
+                    this.setError('weather');
                 }
             }
 
-            setError(message) {
-                this.testResults.innerHTML = (message || '').toString();
+            async getNews() {
+                console.log(new Date().toISOString(), '[Test]', 'Running the news test');
+
+                try {
+                    // Limit number of results shown.
+                    const currTopUSHeadlines = await axios.get('//newsapi.org/v2/top-headlines?country=us&pageSize=3&apiKey=43089a5a73664515a179fd70503be21d');
+
+                    this.setResults(currTopUSHeadlines.data);
+                } catch(e) {
+                    console.log('news', e);
+                    this.setError('news');
+                }
+            }
+            /**
+             * Handle errors for weather + news api calls.
+             * Error message appears in the relevant div.
+             * 
+             */
+            setError(type) {
+                // The error is console logged for dev purposes, and the message is user friendly
+                const message = `Oops! Looks like we had some trouble getting the ${type}.`
+
+                type === 'weather' 
+                    ? this.weatherResults.innerHTML = message 
+                    : this.newsResults.innerHTML = message;
             }
 
-            setResults(results) {
-                results = results.weather.main;
-
-                this.testResults.innerHTML = (results || '').toString();
+            setWeatherResults(results) {
+                const description = results.weather[0].description;
+                // Round to 1 decimal place to make it more user-friendly
+                const temperature = results.main.temp.toFixed(1);
+                
+                this.weatherResults.innerHTML = this.createWeatherResults(description, temperature);
             }
+
+            setNewsResults(results) {
+                console.log(results)
+            }
+
+            createWeatherResults(description, temperature) {
+                return `
+                    <h1>It is ${temperature}°F in Brentwood with ${description}.</h1>
+                `
+            }
+
+            // createNewsCard() {
+
+            // }
         }
     </script>
 
     <style>
+        body {
+            background: url(https://images.unsplash.com/photo-1596142331832-35ac1c4c2936?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2850&q=80) no-repeat center center fixed;
+            background-size: cover;
+            font-family: Avenir, sans-serif;
+        }
+
         .button-container {
             text-align: center;
+            border: none;
         }
 
         .button-container > button {
-            margin: 0;
+            margin: 40px;
             padding: 10px 18px;
             color: white;
-            background-color: #008000;
+            background-color: #137752;
             border: none;
-            border-radius: 3px;
+            border-radius: 5px;
             transition: all 200ms ease-in-out;
-            font-size: 14px;
+            font-size: 16px;
         }
 
         .button-container > button:hover {
-            background-color: #00A000;
+            opacity: 0.6;
         }
 
         .button-container > button:active {
-            background-color: #006000;
+            opacity: 0.8;
         }
 
         .test-results {
             text-align: center;
-            padding: 10px;
+            font-size: 14px;
         }
     </style>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
 
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 </head>
 <body>
-    <div class="test-results"></div>
-
     <div class="button-container"></div>
+
+    <div class="test-results">
+        <section class="weather"></section>
+        <section class="news"></section>
+    </div>
 
     <script>
         'use strict';
@@ -93,8 +150,8 @@
             let testButton = document.createElement('button');
 
             testButton.type = 'button';
-            testButton.innerText = 'Get the Nashville Weather';
-            testButton.onclick = () => test.run();
+            testButton.innerText = `What's going on today?`;
+            testButton.onclick = () => test.getWeather() && test.getNews();
 
             context.appendChild(testButton);
 
